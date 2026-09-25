@@ -14,6 +14,9 @@ import {
   UpdateProductStockBody,
   UpdateProductStockParams,
   UpdateProductStockResponse,
+  UpdateProductBody,
+  UpdateProductParams,
+  UpdateProductResponse,
   ImportProductsBody,
   ImportProductsResponse,
 } from "@workspace/api-zod";
@@ -345,6 +348,36 @@ router.post("/admin/products", requireAdmin, async (req, res, next) => {
     res
       .status(201)
       .json(CreateProductResponse.parse(productResponse(result.product, result.category)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.patch("/admin/products/:id", requireAdmin, async (req, res, next) => {
+  const params = UpdateProductParams.safeParse(req.params);
+  const parsed = UpdateProductBody.safeParse(req.body);
+  if (!params.success || !parsed.success) {
+    res.status(400).json({ error: "Invalid product payload" });
+    return;
+  }
+  try {
+    const category = await db.query.categoriesTable.findFirst({
+      where: eq(categoriesTable.id, parsed.data.categoryId),
+    });
+    if (!category) {
+      res.status(400).json({ error: "Category not found" });
+      return;
+    }
+    const [product] = await db
+      .update(productsTable)
+      .set({ name: parsed.data.name, categoryId: parsed.data.categoryId, price: parsed.data.price, imagePath: parsed.data.imagePath })
+      .where(eq(productsTable.id, params.data.id))
+      .returning();
+    if (!product) {
+      res.status(404).json({ error: "Product not found" });
+      return;
+    }
+    res.json(UpdateProductResponse.parse(productResponse(product, category)));
   } catch (error) {
     next(error);
   }

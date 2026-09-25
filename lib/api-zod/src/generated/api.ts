@@ -587,6 +587,45 @@ export const UpdateProductStockResponse = zod.object({
 
 
 /**
+ * @summary Update a product
+ */
+export const UpdateProductParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const updateProductBodyPriceMin = 0;
+
+export const UpdateProductBody = zod.object({
+  "name": zod.string().min(1).max(200),
+  "categoryId": zod.string().uuid(),
+  "price": zod.number().int().min(updateProductBodyPriceMin),
+  "imagePath": zod.string().max(500).nullable()
+})
+
+export const updateProductResponsePriceMin = 0;
+export const updateProductResponseStockQuantityMin = 0;
+
+export const UpdateProductResponse = zod.object({
+  "id": zod.string().uuid(),
+  "name": zod.string(),
+  "category": zod.object({
+    "id": zod.string().uuid(),
+    "name": zod.string(),
+    "slug": zod.string(),
+    "active": zod.boolean(),
+    "createdAt": zod.coerce.date(),
+    "updatedAt": zod.coerce.date()
+  }),
+  "price": zod.number().int().min(updateProductResponsePriceMin),
+  "stockQuantity": zod.number().int().min(updateProductResponseStockQuantityMin),
+  "imageUrl": zod.string().nullable(),
+  "active": zod.boolean(),
+  "createdAt": zod.coerce.date(),
+  "updatedAt": zod.coerce.date()
+})
+
+
+/**
  * @summary Request a product image upload URL
  */
 export const requestUploadUrlBodyNameMax = 255;

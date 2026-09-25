@@ -393,6 +393,22 @@ export interface StockUpdate {
   stockQuantity: number;
 }
 
+export interface ProductUpdate {
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  name: string;
+  categoryId: string;
+  /** @minimum 0 */
+  price: number;
+  /**
+     * @maxLength 500
+     * @nullable
+     */
+  imagePath: string | null;
+}
+
 export type UploadRequestContentType = typeof UploadRequestContentType[keyof typeof UploadRequestContentType];
 
 

@@ -45,6 +45,7 @@ export * from './salesReport';
 export * from './salesResetConfirmation';
 export * from './salesResetConfirmationConfirmation';
 export * from './salesResetResult';
+export * from './productUpdate';
 export * from './stockUpdate';
 export * from './teamMember';
 export * from './teamMemberInput';

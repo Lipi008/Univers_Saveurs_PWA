@@ -639,6 +639,15 @@ export default function OrdersScreen() {
   const paymentRemainder = subtotal - allocatedPayment;
   const previewChange = Math.max(0, cashTendered - cashPart);
 
+  useEffect(() => {
+    if (itemCount === 0 && paymentPickerVisible) setPaymentPickerVisible(false);
+  }, [itemCount, paymentPickerVisible]);
+
+  useEffect(() => {
+    if (!paymentPickerVisible || paymentMode !== 'Espèces') return;
+    setCashTenderedInput(String(subtotal));
+  }, [subtotal, paymentPickerVisible, paymentMode]);
+
   const selectPaymentMode = (mode: typeof paymentMode) => {
     setPaymentMode(mode);
     setCashPartInput('');
@@ -801,8 +810,38 @@ export default function OrdersScreen() {
             contentContainerStyle={styles.paymentPickerScroll}
           >
             <View style={[styles.pickerCard, { backgroundColor: colors.card }]}>
-            <Text style={[styles.pickerTitle, { color: colors.foreground }]}>Mode de paiement</Text>
-            <Text style={[styles.pickerSubtitle, { color: colors.mutedForeground }]}>Total à encaisser : {formatCFA(subtotal)}</Text>
+            <View style={styles.pickerHeader}>
+              <Text style={[styles.pickerTitle, { color: colors.foreground, marginBottom: 0 }]}>Commande</Text>
+              <Pressable onPress={() => setPaymentPickerVisible(false)} hitSlop={12} style={styles.pickerClose}>
+                <Feather name="x" size={22} color={colors.mutedForeground} />
+              </Pressable>
+            </View>
+            <View style={[styles.orderSummary, { borderColor: colors.border, backgroundColor: colors.background }]}>
+              {cart.map((line) => {
+                const product = products.find((p) => p.id === line.id);
+                const atLimit = !testMode && product !== undefined && line.quantity >= product.stockQuantity;
+                return (
+                  <View key={line.id} style={[styles.orderSummaryRow, { borderTopColor: colors.border }]}>
+                    <View style={styles.orderQtyRow}>
+                      <Pressable onPress={() => { void Haptics.selectionAsync(); decrease(line.id); }} style={[styles.orderQtyBtn, { backgroundColor: colors.secondary }]}>
+                        <Feather name="minus" size={12} color={colors.primary} />
+                      </Pressable>
+                      <Text style={[styles.orderQtyText, { color: colors.foreground }]}>{line.quantity}</Text>
+                      <Pressable disabled={atLimit} onPress={() => { if (product) { void Haptics.selectionAsync(); addToCart(product, testMode); } }} style={[styles.orderQtyBtn, { backgroundColor: colors.secondary, opacity: atLimit ? 0.35 : 1 }]}>
+                        <Feather name="plus" size={12} color={colors.primary} />
+                      </Pressable>
+                    </View>
+                    <Text numberOfLines={1} style={[styles.orderItemName, { color: colors.foreground }]}>{line.name}</Text>
+                    <Text style={[styles.orderItemAmount, { color: colors.foreground }]}>{formatCFA(line.price * line.quantity)}</Text>
+                  </View>
+                );
+              })}
+              <View style={[styles.orderSummaryTotal, { borderTopColor: colors.border }]}>
+                <Text style={[styles.orderSummaryTotalLabel, { color: colors.mutedForeground }]}>Total à encaisser</Text>
+                <Text style={[styles.orderSummaryTotalAmount, { color: colors.primary }]}>{formatCFA(subtotal)}</Text>
+              </View>
+            </View>
+            <Text style={[styles.pickerSubtitle, { color: colors.foreground, fontWeight: '800', marginBottom: 6 }]}>Mode de règlement</Text>
             <View style={styles.paymentModes}>
             {[
               { label: 'Espèces', icon: 'dollar-sign' as const },
@@ -970,8 +1009,20 @@ const styles = StyleSheet.create({
   pickerBackdrop: { flex: 1, backgroundColor: 'rgba(43,24,19,0.25)', justifyContent: 'flex-end' },
   paymentPickerScroll: { flexGrow: 1, justifyContent: 'flex-end' },
   pickerCard: { borderTopLeftRadius: 23, borderTopRightRadius: 23, padding: 20, paddingBottom: 26 },
-  pickerTitle: { fontSize: 18, fontWeight: '800', marginBottom: 6 },
+  pickerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  pickerClose: { padding: 4 },
+  pickerTitle: { fontSize: 18, fontWeight: '800' },
   pickerSubtitle: { fontSize: 12, lineHeight: 18, marginBottom: 10 },
+  orderSummary: { borderWidth: 1, borderRadius: 14, marginBottom: 14, overflow: 'hidden' },
+  orderSummaryRow: { flexDirection: 'row', alignItems: 'center', gap: 9, borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 11, paddingVertical: 9 },
+  orderQtyRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  orderQtyBtn: { width: 26, height: 26, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
+  orderQtyText: { fontSize: 13, fontWeight: '800', minWidth: 20, textAlign: 'center' },
+  orderItemName: { flex: 1, fontSize: 12, fontWeight: '600' },
+  orderItemAmount: { fontSize: 12, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  orderSummaryTotal: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderTopWidth: 1, paddingHorizontal: 11, paddingVertical: 10 },
+  orderSummaryTotalLabel: { fontSize: 11, fontWeight: '700' },
+  orderSummaryTotalAmount: { fontSize: 17, fontWeight: '800', fontVariant: ['tabular-nums'] },
   pickerChoice: { height: 51, flexDirection: 'row', alignItems: 'center', gap: 11, borderBottomWidth: 1 },
   pickerChoiceText: { flex: 1, fontSize: 14, fontWeight: '600' },
   paymentModes: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 8 },
