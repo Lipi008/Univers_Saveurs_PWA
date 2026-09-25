@@ -1,0 +1,24 @@
+kind = "mobile"
+previewPath = "/"
+title = "L'Univers des Saveurs"
+description = "Application mobile POS pour maquis, restaurants, pâtisseries et espaces événementiels : prise de commandes, gestion des tables, caisse, stocks et reçus."
+version = "1.0.0"
+id = "artifacts/univers-des-saveurs"
+router = "expo-domain"
+
+[[services]]
+name = "expo"
+ensurePreviewReachable = "/status"
+paths = [ "/" ]
+localPort = 26055
+
+[services.development]
+run = "pnpm --filter @workspace/univers-des-saveurs run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/univers-des-saveurs", "run", "build" ]
+run = [ "pnpm", "--filter", "@workspace/univers-des-saveurs", "run", "serve" ]
+
+[services.env]
+PORT = "26055"
+BASE_PATH = "/"

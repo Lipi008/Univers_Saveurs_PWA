@@ -1,0 +1,1203 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: API specification
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: auth
+    description: Authentication operations
+  - name: sales
+    description: Sales operations
+  - name: admin
+    description: Administrator operations
+  - name: catalog
+    description: Product catalog operations
+  - name: storage
+    description: Product image storage operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /auth/me:
+    get:
+      operationId: getAuthMe
+      tags: [auth]
+      summary: Get the current application user
+      responses:
+        "200":
+          description: Current application user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppUser"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /auth/setup-status:
+    get:
+      operationId: getAuthSetupStatus
+      tags: [auth]
+      summary: Check whether first administrator setup is required
+      responses:
+        "200":
+          description: Setup status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { needsSetup: { type: boolean } }
+                required: [needsSetup]
+  /auth/setup:
+    post:
+      operationId: setupAuth
+      tags: [auth]
+      summary: Create the first local administrator
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthSetupInput"
+      responses:
+        "201":
+          description: Administrator and session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /auth/login:
+    post:
+      operationId: loginAuth
+      tags: [auth]
+      summary: Sign in with a local username and password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLoginInput"
+      responses:
+        "200":
+          description: User and session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+  /auth/logout:
+    post:
+      operationId: logoutAuth
+      tags: [auth]
+      summary: Sign out the current local session
+      responses:
+        "204": { description: Signed out }
+  /auth/password-reset-complete:
+    post:
+      operationId: completePasswordReset
+      tags: [auth]
+      summary: Mark the authenticated user's temporary password as changed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetCompleteInput"
+      responses:
+        "200":
+          description: Current application user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppUser"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /sales:
+    post:
+      operationId: createSale
+      tags: [sales]
+      summary: Record a sale
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SaleInput"
+      responses:
+        "201":
+          description: Recorded sale
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "200":
+          description: Existing sale for the same offline request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Sale"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /categories:
+    get:
+      operationId: getCategories
+      tags: [catalog]
+      summary: List active product categories
+      responses:
+        "200":
+          description: Active categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /products:
+    get:
+      operationId: getProducts
+      tags: [catalog]
+      summary: List active products
+      responses:
+        "200":
+          description: Active products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Product"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /dining-locations:
+    get:
+      operationId: getDiningLocations
+      tags: [catalog]
+      summary: List active tables and dining spaces
+      responses:
+        "200":
+          description: Active dining locations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DiningLocation"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /admin/dining-locations:
+    post:
+      operationId: createDiningLocation
+      tags: [admin]
+      summary: Create a table or dining space
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiningLocationInput"
+      responses:
+        "201":
+          description: Created dining location
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiningLocation"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /sales/epoch:
+    get:
+      operationId: getSalesEpoch
+      tags: [sales]
+      summary: Current sale generation for safe offline synchronization
+      responses:
+        "200":
+          description: Current generation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesEpoch"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /admin/dining-locations/{id}:
+    delete:
+      operationId: deleteDiningLocation
+      tags: [admin]
+      summary: Remove a table or dining space from future orders
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Dining location removed
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Dining location not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/categories:
+    post:
+      operationId: createCategory
+      tags: [admin]
+      summary: Create a category
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "201":
+          description: Created category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/categories/{id}:
+    patch:
+      operationId: updateCategory
+      tags: [admin]
+      summary: Rename a category
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CategoryInput"
+      responses:
+        "200":
+          description: Updated category
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Category"
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { description: Category not found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "409": { description: Duplicate category, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+    delete:
+      operationId: deleteCategory
+      tags: [admin]
+      summary: Remove a category without deleting products
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteCategoryInput"
+      responses:
+        "204": { description: Category removed }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { description: Category not found, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+        "409": { description: Replacement required or duplicate category, content: { application/json: { schema: { $ref: "#/components/schemas/Error" } } } }
+  /admin/team:
+    get:
+      operationId: getAdminTeam
+      tags: [admin]
+      summary: List application team members, including the bootstrap administrator
+      parameters:
+        - name: includeInactive
+          in: query
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        "200":
+          description: Team members
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamMember"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+    post:
+      operationId: createAdminTeamMember
+      tags: [admin]
+      summary: Create a team member with a temporary password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TeamMemberInput"
+      responses:
+        "201":
+          description: Created team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          description: Duplicate email
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/team/{id}:
+    delete:
+      operationId: deleteAdminTeamMember
+      tags: [admin]
+      summary: Deactivate and remove a team member
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Team member deactivated
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Team member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/team/{id}/password:
+    post:
+      operationId: resetAdminTeamMemberPassword
+      tags: [admin]
+      summary: Set a temporary password for a staff member (marlon only)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TemporaryPasswordInput"
+      responses:
+        "200":
+          description: Updated team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamMember"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/products:
+    post:
+      operationId: createProduct
+      tags: [admin]
+      summary: Create a product
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/products/import:
+    post:
+      operationId: importProducts
+      tags: [admin]
+      summary: Import new products from an Excel workbook
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductWorkbook"
+      responses:
+        "200":
+          description: Import summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductImportResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/products/{id}/stock:
+    patch:
+      operationId: updateProductStock
+      tags: [admin]
+      summary: Set product stock
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StockUpdate"
+      responses:
+        "200":
+          description: Updated product
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/storage/uploads/request-url:
+    post:
+      operationId: requestUploadUrl
+      tags: [storage, admin]
+      summary: Request a product image upload URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UploadRequest"
+      responses:
+        "200":
+          description: Presigned upload URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UploadResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /storage/objects/{objectPath}:
+    get:
+      operationId: getStorageObject
+      tags: [storage]
+      summary: Serve a product image
+      parameters:
+        - name: objectPath
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Stored object
+          content:
+            image/jpeg: {}
+            image/png: {}
+            image/webp: {}
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Object not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /admin/sales:
+    get:
+      operationId: getAdminSales
+      tags: [admin]
+      summary: List sales for administrators
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: includeTests
+          in: query
+          required: false
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Sales history
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Sale"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/sales/reset:
+    post:
+      operationId: resetSales
+      tags: [admin]
+      summary: Delete test sales and restart test receipt numbering, preserving real sales
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SalesResetConfirmation"
+      responses:
+        "200":
+          description: Sales reset summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesResetResult"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+  /admin/reports:
+    get:
+      operationId: getAdminReport
+      tags: [admin]
+      summary: Summarize sales for a business date range in Africa/Abidjan
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}-\d{2}$'
+      responses:
+        "200":
+          description: Sales report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SalesReport"
+        "400":
+          description: Invalid report period
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+    AppUser:
+      type: object
+      properties:
+        clerkUserId:
+          type: string
+        username:
+          type: string
+        firstName:
+          type: ["string", "null"]
+        lastName:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [admin, manager, cashier, server]
+        active:
+          type: boolean
+        mustResetPassword:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deactivatedAt:
+          type: ["string", "null"]
+          format: date-time
+      required: [clerkUserId, username, firstName, lastName, email, role, active, mustResetPassword, createdAt, updatedAt, deactivatedAt]
+    TeamMember:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        firstName:
+          type: ["string", "null"]
+        lastName:
+          type: ["string", "null"]
+        email:
+          type: ["string", "null"]
+        username:
+          type: ["string", "null"]
+        role:
+          type: string
+          enum: [admin, manager, cashier, server]
+        active:
+          type: boolean
+        mustResetPassword:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        deactivatedAt:
+          type: ["string", "null"]
+          format: date-time
+      required: [id, name, firstName, lastName, email, username, role, active, mustResetPassword, createdAt, deactivatedAt]
+    TeamMemberInput:
+      type: object
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        password:
+          type: string
+          minLength: 8
+        role:
+          type: string
+          enum: [manager, cashier, server]
+      required: [firstName, lastName, password, role]
+    TemporaryPasswordInput:
+      type: object
+      properties:
+        password:
+          type: string
+          minLength: 8
+          maxLength: 256
+      required: [password]
+    AuthLoginInput:
+      type: object
+      properties:
+        username: { type: string, minLength: 3, maxLength: 64 }
+        password: { type: string, minLength: 8, maxLength: 256 }
+      required: [username, password]
+    AuthSetupInput:
+      type: object
+      properties:
+        username: { type: string, minLength: 3, maxLength: 64 }
+        password: { type: string, minLength: 8, maxLength: 256 }
+        firstName: { type: string, minLength: 1, maxLength: 80 }
+        lastName: { type: string, minLength: 1, maxLength: 80 }
+      required: [username, password, firstName, lastName]
+    AuthSession:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/AppUser" }
+        token: { type: string }
+        expiresAt: { type: string, format: date-time }
+      required: [user, token, expiresAt]
+    PasswordResetCompleteInput:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          minLength: 8
+          maxLength: 256
+        newPassword:
+          type: string
+          minLength: 8
+          maxLength: 256
+      required: [currentPassword, newPassword]
+    SaleItemInput:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: integer
+          minimum: 1
+      required: [productId, quantity]
+    SaleInput:
+      type: object
+      properties:
+        tableLabel:
+          type: string
+          minLength: 1
+        paymentMethod:
+          type: string
+          minLength: 1
+        cashTendered:
+          type: integer
+          minimum: 0
+        cashAmount:
+          type: integer
+          minimum: 0
+        waveAmount:
+          type: integer
+          minimum: 0
+        orangeMoneyAmount:
+          type: integer
+          minimum: 0
+        clientRequestId:
+          type: string
+          format: uuid
+        salesEpoch:
+          type: integer
+          minimum: 0
+        isTest:
+          type: boolean
+        testEpoch:
+          type: integer
+          minimum: 0
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/SaleItemInput"
+      required: [tableLabel, paymentMethod, items]
+    SalesEpoch:
+      type: object
+      properties:
+        epoch:
+          type: integer
+        testEpoch:
+          type: integer
+      required: [epoch, testEpoch]
+    SaleItem:
+      type: object
+      properties:
+        id:
+          type: string
+        saleId:
+          type: string
+        productId:
+          type: string
+        name:
+          type: string
+        unitPrice:
+          type: integer
+        quantity:
+          type: integer
+        lineTotal:
+          type: integer
+      required: [id, saleId, productId, name, unitPrice, quantity, lineTotal]
+    Sale:
+      type: object
+      properties:
+        id:
+          type: string
+        receiptNumber:
+          type: string
+        isTest:
+          type: boolean
+        clerkUserId:
+          type: string
+        tableLabel:
+          type: string
+        paymentMethod:
+          type: string
+        subtotal:
+          type: integer
+        cashTendered:
+          type: integer
+        cashAmount:
+          type: integer
+        waveAmount:
+          type: integer
+        orangeMoneyAmount:
+          type: integer
+        changeDue:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/SaleItem"
+      required:
+        [id, receiptNumber, isTest, clerkUserId, tableLabel, paymentMethod, subtotal, cashTendered, cashAmount, waveAmount, orangeMoneyAmount, changeDue, createdAt, items]
+    ReportCashier:
+      type: object
+      properties:
+        clerkUserId:
+          type: string
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, manager, cashier, server]
+        revenue:
+          type: integer
+        ticketCount:
+          type: integer
+        averageTicket:
+          type: integer
+      required: [clerkUserId, name, role, revenue, ticketCount, averageTicket]
+    ReportDailyTotal:
+      type: object
+      properties:
+        date:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        revenue:
+          type: integer
+        ticketCount:
+          type: integer
+      required: [date, revenue, ticketCount]
+    ReportPaymentTotal:
+      type: object
+      properties:
+        paymentMethod:
+          type: string
+        revenue:
+          type: integer
+        ticketCount:
+          type: integer
+      required: [paymentMethod, revenue, ticketCount]
+    ReportTopItem:
+      type: object
+      properties:
+        name:
+          type: string
+        quantity:
+          type: integer
+        revenue:
+          type: integer
+      required: [name, quantity, revenue]
+    SalesReport:
+      type: object
+      properties:
+        from:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        to:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+        timezone:
+          type: string
+        totalRevenue:
+          type: integer
+        ticketCount:
+          type: integer
+        averageTicket:
+          type: integer
+        totalItems:
+          type: integer
+        cashiers:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportCashier"
+        daily:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportDailyTotal"
+        payments:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportPaymentTotal"
+        topItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReportTopItem"
+      required:
+        [from, to, timezone, totalRevenue, ticketCount, averageTicket, totalItems, cashiers, daily, payments, topItems]
+    Category:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        slug:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, slug, active, createdAt, updatedAt]
+    CategoryInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+      required: [name]
+    DeleteCategoryInput:
+      type: object
+      properties:
+        replacementCategoryId:
+          type: string
+          format: uuid
+    DiningLocation:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        kind:
+          type: string
+          enum: [table, space]
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, kind, active, createdAt, updatedAt]
+    DiningLocationInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+        kind:
+          type: string
+          enum: [table, space]
+      required: [name, kind]
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          $ref: "#/components/schemas/Category"
+        price:
+          type: integer
+          minimum: 0
+        stockQuantity:
+          type: integer
+          minimum: 0
+        imageUrl:
+          type: ["string", "null"]
+          format: uri-reference
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, category, price, stockQuantity, imageUrl, active, createdAt, updatedAt]
+    ProductInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        categoryId:
+          type: string
+          format: uuid
+        price:
+          type: integer
+          minimum: 0
+        stockQuantity:
+          type: integer
+          minimum: 0
+        imagePath:
+          type: ["string", "null"]
+          maxLength: 500
+      required: [name, categoryId, price, stockQuantity, imagePath]
+    ProductWorkbook:
+      type: object
+      properties:
+        fileName:
+          type: string
+          pattern: '\.xlsx$'
+        base64:
+          type: string
+          minLength: 1
+          maxLength: 4200000
+      required: [fileName, base64]
+    ProductImportResult:
+      type: object
+      properties:
+        created:
+          type: integer
+        skipped:
+          type: integer
+        categoriesCreated:
+          type: integer
+      required: [created, skipped, categoriesCreated]
+    SalesResetConfirmation:
+      type: object
+      properties:
+        confirmation:
+          type: string
+          enum: ["EFFACER LES ESSAIS"]
+      required: [confirmation]
+    SalesResetResult:
+      type: object
+      properties:
+        deletedSales:
+          type: integer
+      required: [deletedSales]
+    StockUpdate:
+      type: object
+      properties:
+        stockQuantity:
+          type: integer
+          minimum: 0
+      required: [stockQuantity]
+    UploadRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        size:
+          type: integer
+          minimum: 1
+          maximum: 5242880
+        contentType:
+          type: string
+          enum: [image/jpeg, image/png, image/webp]
+      required: [name, size, contentType]
+    UploadResponse:
+      type: object
+      properties:
+        uploadURL:
+          type: string
+          format: uri
+        objectPath:
+          type: string
+      required: [uploadURL, objectPath]
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+      required: [error]
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Forbidden:
+      description: Administrator role required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+

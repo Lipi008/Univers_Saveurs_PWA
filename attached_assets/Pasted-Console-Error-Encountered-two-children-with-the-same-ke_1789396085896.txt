@@ -1,0 +1,574 @@
+Console Error
+Encountered two children with the same key, `M`. Keys should be unique so that components maintain their identity across updates. Non-unique keys may cause children to be duplicated and/or omitted — the behavior is unsupported and could change in a future version.
+artifacts/univers-des-saveurs/app/(tabs)/rapports.tsx (17:720)
+
+ 
+ 15 |
+    
+<
+Text
+ style
+=
+{[styles
+.
+eyebrow
+,
+ { color
+:
+ colors
+.
+accentForeground }]}
+>
+DIRECTION
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{[styles
+.
+title
+,
+ { color
+:
+ colors
+.
+foreground }]}
+>
+Rapports
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{[styles
+.
+subtitle
+,
+ { color
+:
+ colors
+.
+mutedForeground }]}
+>
+Les
+ performances de votre établissement
+.
+<
+/
+Text
+>
+ 
+ 16 |
+    
+<
+View
+ style
+=
+{styles
+.
+metricRow}
+>
+<
+View
+ style
+=
+{[styles
+.
+metric
+,
+ { backgroundColor
+:
+ colors
+.
+card
+,
+ borderColor
+:
+ colors
+.
+border }]}
+>
+<
+Text
+ style
+=
+{[styles
+.
+metricLabel
+,
+ { color
+:
+ colors
+.
+mutedForeground }]}
+>
+Ventes
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{[styles
+.
+metricValue
+,
+ { color
+:
+ colors
+.
+foreground }]}
+>
+{formatCFA(
+482000
+)}
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{[styles
+.
+metricUp
+,
+ { color
+:
+ 
+'#55A76F'
+ }]}
+>
++
+8
+,
+2
+%
+<
+/
+Text
+>
+<
+/
+View
+>
+<
+View
+ style
+=
+{[styles
+.
+metric
+,
+ { backgroundColor
+:
+ colors
+.
+card
+,
+ borderColor
+:
+ colors
+.
+border }]}
+>
+<
+Text
+ style
+=
+{[styles
+.
+metricLabel
+,
+ { color
+:
+ colors
+.
+mutedForeground }]}
+>
+Tickets
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{[styles
+.
+metricValue
+,
+ { color
+:
+ colors
+.
+foreground }]}
+>
+68
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{[styles
+.
+metricUp
+,
+ { color
+:
+ 
+'#55A76F'
+ }]}
+>
++
+14
+,
+1
+%
+<
+/
+Text
+>
+<
+/
+View
+>
+<
+/
+View
+>
+>
+ 17 |
+    
+<
+View
+ style
+=
+{[styles
+.
+chartCard
+,
+ { backgroundColor
+:
+ colors
+.
+card
+,
+ borderColor
+:
+ colors
+.
+border }]}
+>
+<
+View
+ style
+=
+{styles
+.
+chartHead}
+>
+<
+View
+>
+<
+Text
+ style
+=
+{[styles
+.
+chartTitle
+,
+ { color
+:
+ colors
+.
+foreground }]}
+>
+Chiffre
+ d’affaires
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{[styles
+.
+chartSub
+,
+ { color
+:
+ colors
+.
+mutedForeground }]}
+>
+Cette
+ semaine
+<
+/
+Text
+>
+<
+/View><Feather name="more-horizontal" size={20} color={colors.mutedForeground} /
+>
+<
+/View><View style={styles.chart}><View style={styles.gridLines}><View style={[styles.gridLine, { borderColor: colors.border }]} /
+>
+<
+View
+ style
+=
+{[styles
+.
+gridLine
+,
+ { borderColor
+:
+ colors
+.
+border }]} 
+/><View style={[styles.gridLine, { borderColor: colors.border }]} /
+>
+<
+/View><View style={styles.bars}>{bars.map((height, index) => <View key={days[index]} style={styles.barCol}><View style={[styles.bar, { height: height * 0.82, backgroundColor: index === 6 ? colors.primary : colors.accent }]} /
+>
+<
+Text
+ style
+=
+{[styles
+.
+day
+,
+ { color
+:
+ colors
+.
+mutedForeground }]}
+>
+{days[index]}
+<
+/
+Text
+>
+<
+/
+View
+>
+)}
+<
+/
+View
+>
+<
+/
+View
+>
+<
+/
+View
+>
+ 
+    |
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+^
+ 
+ 18 |
+    
+<
+View
+ style
+=
+{[styles
+.
+bestCard
+,
+ { backgroundColor
+:
+ colors
+.
+primary }]}
+>
+<
+View
+ style
+=
+{styles
+.
+bestIcon}
+>
+<
+Feather
+ name
+=
+"award"
+ size
+=
+{
+21
+} color
+=
+{colors
+.
+accent} 
+/
+>
+<
+/
+View
+>
+<
+View
+ style
+=
+{{ flex
+:
+ 
+1
+ }}
+>
+<
+Text
+ style
+=
+{styles
+.
+bestCaption}
+>
+ARTICLE
+ 
+N°1
+ 
+CE
+ 
+MOIS
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{styles
+.
+bestName}
+>
+Poulet
+ braisé
+<
+/
+Text
+>
+<
+Text
+ style
+=
+{styles
+.
+bestCopy}
+>
+124
+ ventes • 
+18
+%
+ de votre 
+CA
+<
+/
+Text
+>
+<
+/View><Feather name="arrow-up-right" size={19} color="#F7EAD2" /
+>
+<
+/
+View
+>
+ 
+ 19 |
+  
+<
+/
+ScrollView
+>
+;
+ 
+ 20 |
+}
+Component Stack
+42
+
+bars.map$argument_0
+artifacts/univers-des-saveurs/app/(tabs)/rapports.tsx:17:720
+Array.map
+<anonymous>
+ReportsScreen
+artifacts/univers-des-saveurs/app/(tabs)/rapports.tsx:17:696
+WrappedScreenComponent
+node_modules/.pnpm/expo-router@57.0.21_14b78080c739fcf093d1f8cb7d9765c0/node_modules/expo-router/build/useScreens.js:225:37
+Call Stack
+21
+
+Source Map
+
+This call stack is not symbolicated. Some features are unavailable such as viewing the function name or tapping to open files.
+Object.addLog
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:1085:32
+consoleErrorMiddleware
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:882:16
+console.error
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:821:29
+Proxy.<anonymous>
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/__replco/static/devtools/injected.js:37:27
+<unknown>
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:8585:23
+runWithFiberInDEV
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:5572:70
+warnOnInvalidKey
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:8584:13
+reconcileChildrenArray
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:8610:156
+reconcileChildFibersImpl
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:8717:111
+<unknown>
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:8744:33
+reconcileChildren
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:10303:49
+beginWork
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:11119:1567
+runWithFiberInDEV
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:5572:70
+performUnitOfWork
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:13480:95
+workLoopSync
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:13375:40
+renderRootSync
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:13360:9
+performWorkOnRoot
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:12997:184
+performSyncWorkOnRoot
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:14143:7
+flushSyncWorkAcrossRoots_impl
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:14058:308
+processRootScheduleInMicrotask
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:14079:104
+<unknown>
+https://640caa66-d703-404f-b560-cce937aa57bc-00-1urlkdhvwx8zo.expo.worf.replit.dev/artifacts/univers-des-saveurs/node_modules/expo-router/entry.bundle:14154:154
