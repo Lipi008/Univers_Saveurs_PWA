@@ -9,6 +9,7 @@ import {
   DeleteCategoryBody,
   CreateProductBody,
   CreateProductResponse,
+  DeleteProductParams,
   GetCategoriesResponse,
   GetProductsResponse,
   UpdateProductStockBody,
@@ -378,6 +379,28 @@ router.patch("/admin/products/:id", requireAdmin, async (req, res, next) => {
       return;
     }
     res.json(UpdateProductResponse.parse(productResponse(product, category)));
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete("/admin/products/:id", requireAdmin, async (req, res, next) => {
+  const params = DeleteProductParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: "Identifiant produit invalide." });
+    return;
+  }
+  try {
+    const [product] = await db
+      .update(productsTable)
+      .set({ active: false })
+      .where(eq(productsTable.id, params.data.id))
+      .returning({ id: productsTable.id });
+    if (!product) {
+      res.status(404).json({ error: "Produit introuvable." });
+      return;
+    }
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

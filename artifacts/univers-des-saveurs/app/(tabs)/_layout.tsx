@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback } from 'react';
 import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native';
 import { useColors } from '@/hooks/useColors';
 import { Feather } from '@expo/vector-icons';
@@ -112,72 +112,20 @@ function ClassicTabLayout({ canManage }: { canManage: boolean }) {
 }
 
 export default function TabLayout() {
-  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
   const { signOut } = useLocalSession();
   const pathname = usePathname();
-  const [tokenReady, setTokenReady] = useState(false);
-  const [tokenError, setTokenError] = useState(false);
-  const [tokenAttempt, setTokenAttempt] = useState(0);
-  const getTokenRef = useRef(getToken);
-  getTokenRef.current = getToken;
-
-  useEffect(() => {
-    let active = true;
-    setTokenReady(false);
-    setTokenError(false);
-    if (!isLoaded || !isSignedIn) {
-      return () => {
-        active = false;
-      };
-    }
-    if (Platform.OS === 'web') {
-      setTokenReady(true);
-      return () => {
-        active = false;
-      };
-    }
-    const acquireToken = async () => {
-      for (let attempt = 0; attempt < 5 && active; attempt += 1) {
-        try {
-          const token = await getTokenRef.current();
-          if (token) {
-            if (active) setTokenReady(true);
-            return;
-          }
-        } catch {
-          // Clerk can briefly be ready before its native session is hydrated.
-        }
-        await new Promise((resolve) => setTimeout(resolve, 350));
-      }
-      if (active) setTokenError(true);
-    };
-    void acquireToken();
-    return () => {
-      active = false;
-    };
-  }, [isLoaded, isSignedIn, tokenAttempt]);
 
   const authMe = useGetAuthMe({
     query: {
       queryKey: getGetAuthMeQueryKey(),
-      enabled: isLoaded && !!isSignedIn && tokenReady,
+      enabled: isLoaded && !!isSignedIn,
       staleTime: 60_000,
       retry: false,
     },
   });
 
-  const retryToken = useCallback(() => {
-    setTokenError(false);
-    setTokenReady(false);
-    setTokenAttempt((attempt) => attempt + 1);
-  }, []);
-
   const retryPermissions = useCallback(async () => {
-    try {
-      await getTokenRef.current({ skipCache: true });
-    } catch {
-      // The refetch below will expose a safe network/authentication message.
-    }
     await authMe.refetch();
   }, [authMe]);
 
@@ -194,24 +142,10 @@ export default function TabLayout() {
           ? 'Le téléphone n’arrive pas à joindre le serveur. Vérifiez la connexion Internet puis réessayez.'
           : '';
 
-  if (!isLoaded || (isSignedIn && !tokenReady && !tokenError)) {
+  if (!isLoaded) {
     return <View style={styles.authLoading}><ActivityIndicator color="#7B2430" /></View>;
   }
   if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
-  if (tokenError) {
-    return (
-      <View style={styles.authError}>
-        <Text style={styles.authErrorTitle}>Connexion sécurisée indisponible</Text>
-        <Text style={styles.authErrorText}>Nous n’avons pas pu récupérer votre session. Réessayez ou déconnectez-vous.</Text>
-        <Pressable onPress={retryToken} style={styles.retryButton}>
-          <Text style={styles.retryButtonText}>Réessayer</Text>
-        </Pressable>
-        <Pressable onPress={() => { void signOut(); }} style={styles.signOutButton}>
-          <Text style={styles.signOutButtonText}>Se déconnecter</Text>
-        </Pressable>
-      </View>
-    );
-  }
   if (authMe.isLoading) {
     return <View style={styles.authLoading}><ActivityIndicator color="#7B2430" /></View>;
   }

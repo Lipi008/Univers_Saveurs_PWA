@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+out/
+.next/
+.expo/
+*.tsbuildinfo
+
+# TypeScript declaration cache
+lib/*/dist/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Expo
+.expo-shared/
+web-build/
+
+# pnpm
+.pnpm-store/
+
+# Kilo / internal tooling
+.kilo/

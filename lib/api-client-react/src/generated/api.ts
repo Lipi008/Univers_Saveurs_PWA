@@ -2563,6 +2563,46 @@ export function useGetAdminReport<TData = Awaited<ReturnType<typeof getAdminRepo
 }
 
 
+/**
+ * @summary Archive (soft-delete) a product
+ */
+export const getDeleteProductUrl = (id: string) => `/api/admin/products/${id}`;
+
+export const deleteProduct = async (id: string, options?: Parameters<typeof customFetch>[1]): Promise<void> => {
+  return customFetch<void>(getDeleteProductUrl(id), { ...options, method: 'DELETE' });
+};
+
+export const getDeleteProductMutationKey = () => ['deleteProduct'] as const;
+
+export const getDeleteProductMutationOptions = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | Error>,
+    TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError, DeleteProductMutationVariables, TContext>, request?: SecondParameter<typeof customFetch> }
+): UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError, DeleteProductMutationVariables, TContext> => {
+  const mutationKey = getDeleteProductMutationKey();
+  const { mutation: mutationOptions, request: requestOptions } = options ?
+    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+    options :
+    { ...options, mutation: { ...options.mutation, mutationKey } } :
+    { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteProduct>>, DeleteProductMutationVariables> = (props) => {
+    const { id } = props ?? {};
+    return deleteProduct(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteProductMutationResult = NonNullable<Awaited<ReturnType<typeof deleteProduct>>>;
+export type DeleteProductMutationError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | Error>;
+export type DeleteProductMutationVariables = { id: string };
+
+export const useDeleteProduct = <TError = ErrorType<BadRequestResponse | UnauthorizedResponse | ForbiddenResponse | Error>,
+    TContext = unknown>(options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteProduct>>, TError, DeleteProductMutationVariables, TContext>, request?: SecondParameter<typeof customFetch> }
+): UseMutationResult<Awaited<ReturnType<typeof deleteProduct>>, TError, DeleteProductMutationVariables, TContext> => {
+  return useMutation(getDeleteProductMutationOptions(options));
+};
+
+
 
 
 

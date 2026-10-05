@@ -15,6 +15,7 @@ import {
   Product as ApiProduct,
   useCreateCategory,
   useDeleteCategory,
+  useDeleteProduct,
   useCreateProduct,
   useUpdateProduct,
   useGetAuthMe,
@@ -52,7 +53,7 @@ function normalizeSearch(value: string) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('fr-FR').trim();
 }
 
-function ProductRow({ product, editable, onStock, onEdit }: { product: ApiProduct; editable: boolean; onStock: () => void; onEdit: () => void }) {
+function ProductRow({ product, editable, onStock, onEdit, onDelete }: { product: ApiProduct; editable: boolean; onStock: () => void; onEdit: () => void; onDelete: () => void }) {
   const colors = useColors();
   const { getToken } = useAuth();
   const [token, setToken] = useState<string | null>(null);
@@ -74,6 +75,9 @@ function ProductRow({ product, editable, onStock, onEdit }: { product: ApiProduc
       </View>
       {editable && (
         <View style={styles.productActions}>
+          <Pressable testID={`delete-product-${product.id}`} onPress={onDelete} style={[styles.actionIconBtn, { backgroundColor: '#FFF1E5' }]}>
+            <Feather name="trash-2" size={16} color="#B86A3A" />
+          </Pressable>
           <Pressable testID={`edit-product-${product.id}`} onPress={onEdit} style={[styles.actionIconBtn, { backgroundColor: colors.secondary }]}>
             <Feather name="edit-3" size={16} color={colors.primary} />
           </Pressable>
@@ -96,6 +100,7 @@ export default function StocksScreen() {
   const categoriesQuery = useGetCategories();
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
+  const deleteProduct = useDeleteProduct();
   const importProducts = useImportProducts();
   const createCategory = useCreateCategory();
   const updateCategory = useUpdateCategory();
@@ -363,6 +368,25 @@ export default function StocksScreen() {
     }
   };
 
+  const confirmDeleteProduct = (product: ApiProduct) => {
+    if (!isOnline) { Alert.alert('Hors ligne', 'L\'archivage nécessite une connexion.'); return; }
+    Alert.alert(
+      'Archiver ce produit ?',
+      `« ${product.name} » sera retiré du catalogue et de l'écran de vente. Les ventes passées ne sont pas affectées.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Archiver', style: 'destructive',
+          onPress: () => {
+            void deleteProduct.mutateAsync({ id: product.id })
+              .then(() => queryClient.invalidateQueries({ queryKey: getGetProductsQueryKey() }))
+              .catch((error) => Alert.alert('Archivage impossible', errorMessage(error, 'Réessayez.')));
+          },
+        },
+      ],
+    );
+  };
+
   const saveStock = async () => {
     if (!isOnline) { Alert.alert('Hors ligne', 'La modification des stocks nécessite une connexion.'); return; }
     if (!stockProduct || updateStock.isPending) return;
@@ -463,7 +487,7 @@ export default function StocksScreen() {
             ))}
           </View>
         )}
-         {productsQuery.isError && !catalog ? <Text style={[styles.centerText, { color: '#B42318' }]}>Impossible de charger les produits.</Text> : products.length === 0 ? <Text style={[styles.centerText, { color: colors.mutedForeground }]}>Aucun produit dans le catalogue.</Text> : visibleProducts.length === 0 ? <View style={styles.noResult}><Feather name="search" size={26} color={colors.mutedForeground} /><Text style={[styles.centerText, { color: colors.mutedForeground }]}>Aucun produit ne correspond à « {search.trim()} ».</Text></View> : visibleProducts.map((product) => <ProductRow key={product.id} product={product} editable={canManage && isOnline} onStock={() => { setStockProduct(product); setStockValue(String(product.stockQuantity)); }} onEdit={() => openEditProduct(product)} />)}
+         {productsQuery.isError && !catalog ? <Text style={[styles.centerText, { color: '#B42318' }]}>Impossible de charger les produits.</Text> : products.length === 0 ? <Text style={[styles.centerText, { color: colors.mutedForeground }]}>Aucun produit dans le catalogue.</Text> : visibleProducts.length === 0 ? <View style={styles.noResult}><Feather name="search" size={26} color={colors.mutedForeground} /><Text style={[styles.centerText, { color: colors.mutedForeground }]}>Aucun produit ne correspond à « {search.trim()} ».</Text></View> : visibleProducts.map((product) => <ProductRow key={product.id} product={product} editable={canManage && isOnline} onStock={() => { setStockProduct(product); setStockValue(String(product.stockQuantity)); }} onEdit={() => openEditProduct(product)} onDelete={() => confirmDeleteProduct(product)} />)}
       </ScrollView>
 
       <Modal visible={formVisible} animationType="slide" transparent onRequestClose={() => !busy && setFormVisible(false)}>

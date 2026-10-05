@@ -759,3 +759,11 @@ export const GetAdminReportResponse = zod.object({
 })
 
 
+/**
+ * @summary Archive (soft-delete) a product — removes it from the catalog and POS screen
+ */
+export const DeleteProductParams = zod.object({
+  "id": zod.coerce.string().uuid()
+})
+
+export const DeleteProductResponse = zod.void()
