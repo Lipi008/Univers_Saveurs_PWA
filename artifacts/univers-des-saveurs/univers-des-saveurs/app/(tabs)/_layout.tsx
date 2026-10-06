@@ -4,10 +4,9 @@ import { useColors } from '@/hooks/useColors';
 import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { isLiquidGlassAvailable } from 'expo-glass-effect';
-import { Tabs, usePathname } from 'expo-router';
+import { Redirect, Tabs, usePathname, useRouter } from 'expo-router';
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
 import { SymbolView } from 'expo-symbols';
-import { Redirect } from 'expo-router';
 import { useAuth, useLocalSession } from '@/hooks/useLocalAuth';
 import { getGetAuthMeQueryKey, useGetAuthMe } from '@workspace/api-client-react';
 
@@ -114,10 +113,12 @@ function ClassicTabLayout({ canManage }: { canManage: boolean }) {
 export default function TabLayout() {
   const { isLoaded, isSignedIn, getToken } = useAuth();
   const { signOut } = useLocalSession();
+  const router = useRouter();
   const pathname = usePathname();
   const [tokenReady, setTokenReady] = useState(false);
   const [tokenError, setTokenError] = useState(false);
   const [tokenAttempt, setTokenAttempt] = useState(0);
+  const [signingOut401, setSigningOut401] = useState(false);
   const getTokenRef = useRef(getToken);
   getTokenRef.current = getToken;
 
@@ -187,12 +188,23 @@ export default function TabLayout() {
       : undefined;
   const authErrorText =
     authErrorStatus === 401
-      ? 'Votre session a expiré ou n’est plus valide. Réessayez, puis reconnectez-vous si nécessaire.'
+      ? ‘Votre session a expiré ou n’est plus valide. Réessayez, puis reconnectez-vous si nécessaire.’
       : authErrorStatus === 403
-        ? 'Votre compte existe, mais son accès a été désactivé.'
+        ? ‘Votre compte existe, mais son accès a été désactivé.’
         : authMe.isError
-          ? 'Le téléphone n’arrive pas à joindre le serveur. Vérifiez la connexion Internet puis réessayez.'
-          : '';
+          ? ‘Le téléphone n’arrive pas à joindre le serveur. Vérifiez la connexion Internet puis réessayez.’
+          : ‘’;
+
+  // Clear the stale token on 401 before redirecting to avoid an infinite
+  // redirect loop: (auth) sees the token → redirects to (tabs) → 401 → repeat.
+  useEffect(() => {
+    if (authErrorStatus === 401 && !signingOut401) {
+      setSigningOut401(true);
+      void signOut().finally(() => {
+        router.replace(‘/(auth)/sign-in’);
+      });
+    }
+  }, [authErrorStatus, signingOut401, signOut, router]);
 
   if (!isLoaded || (isSignedIn && !tokenReady && !tokenError)) {
     return <View style={styles.authLoading}><ActivityIndicator color="#7B2430" /></View>;
@@ -215,7 +227,7 @@ export default function TabLayout() {
   if (authMe.isLoading) {
     return <View style={styles.authLoading}><ActivityIndicator color="#7B2430" /></View>;
   }
-  if (authErrorStatus === 401) return <Redirect href="/(auth)/sign-in" />;
+  if (authErrorStatus === 401 || signingOut401) return <View style={styles.authLoading}><ActivityIndicator color="#7B2430" /></View>;
   if (authMe.isError || !authMe.data) {
     return (
       <View style={styles.authError}>
